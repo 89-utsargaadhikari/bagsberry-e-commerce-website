@@ -1,0 +1,342 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(0.97 0.02 330);
+  --foreground: oklch(0.2 0.05 330);
+  --card: oklch(0.99 0.015 330);
+  --card-foreground: oklch(0.2 0.05 330);
+  --popover: oklch(0.99 0.015 330);
+  --popover-foreground: oklch(0.2 0.05 330);
+  --primary: oklch(0.62 0.24 330);
+  --primary-foreground: oklch(0.98 0.01 330);
+  --secondary: oklch(0.92 0.03 330);
+  --secondary-foreground: oklch(0.22 0.05 330);
+  --muted: oklch(0.94 0.02 330);
+  --muted-foreground: oklch(0.48 0.05 330);
+  --accent: oklch(0.7 0.2 330);
+  --accent-foreground: oklch(0.98 0.01 330);
+  --destructive: oklch(0.56 0.23 24);
+  --destructive-foreground: oklch(0.98 0.01 330);
+  --border: oklch(0.9 0.02 330);
+  --input: oklch(0.95 0.02 330);
+  --ring: oklch(0.62 0.24 330);
+  --chart-1: oklch(0.64 0.22 330);
+  --chart-2: oklch(0.72 0.18 350);
+  --chart-3: oklch(0.52 0.12 320);
+  --chart-4: oklch(0.84 0.12 10);
+  --chart-5: oklch(0.7 0.18 300);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.96 0.02 330);
+  --sidebar-foreground: oklch(0.22 0.05 330);
+  --sidebar-primary: oklch(0.62 0.24 330);
+  --sidebar-primary-foreground: oklch(0.98 0.01 330);
+  --sidebar-accent: oklch(0.92 0.03 330);
+  --sidebar-accent-foreground: oklch(0.22 0.05 330);
+  --sidebar-border: oklch(0.9 0.02 330);
+  --sidebar-ring: oklch(0.62 0.24 330);
+}
+
+.dark {
+  --background: oklch(0.22 0.08 330);
+  --foreground: oklch(0.98 0.01 330);
+  --card: oklch(0.26 0.08 330);
+  --card-foreground: oklch(0.98 0.01 330);
+  --popover: oklch(0.28 0.08 330);
+  --popover-foreground: oklch(0.98 0.01 330);
+  --primary: oklch(0.74 0.2 330);
+  --primary-foreground: oklch(0.2 0.05 330);
+  --secondary: oklch(0.3 0.08 330);
+  --secondary-foreground: oklch(0.98 0.01 330);
+  --muted: oklch(0.3 0.06 330);
+  --muted-foreground: oklch(0.86 0.03 330);
+  --accent: oklch(0.78 0.2 330);
+  --accent-foreground: oklch(0.2 0.05 330);
+  --destructive: oklch(0.62 0.2 24);
+  --destructive-foreground: oklch(0.98 0.01 330);
+  --border: oklch(0.34 0.06 330);
+  --input: oklch(0.3 0.06 330);
+  --ring: oklch(0.74 0.2 330);
+  --chart-1: oklch(0.7 0.18 330);
+  --chart-2: oklch(0.78 0.14 350);
+  --chart-3: oklch(0.6 0.1 320);
+  --chart-4: oklch(0.86 0.1 10);
+  --chart-5: oklch(0.72 0.16 300);
+  --sidebar: oklch(0.24 0.08 330);
+  --sidebar-foreground: oklch(0.98 0.01 330);
+  --sidebar-primary: oklch(0.74 0.2 330);
+  --sidebar-primary-foreground: oklch(0.2 0.05 330);
+  --sidebar-accent: oklch(0.3 0.08 330);
+  --sidebar-accent-foreground: oklch(0.98 0.01 330);
+  --sidebar-border: oklch(0.34 0.06 330);
+  --sidebar-ring: oklch(0.74 0.2 330);
+}
+
+@theme inline {
+  --font-sans: var(--font-poppins);
+  --font-display: var(--font-greatvibes);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* ========== PLAYFUL ANIMATIONS ========== */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes bounce-in {
+  0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+  50% { transform: scale(1.1) rotate(10deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+@keyframes pulse-grow {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes slide-up-bounce {
+  0% { transform: translateY(100px); opacity: 0; }
+  60% { transform: translateY(-10px); }
+  80% { transform: translateY(5px); }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15) rotate(3deg); }
+  100% { transform: scale(1); }
+}
+
+@keyframes jello {
+  0%, 100% { transform: skewX(0deg) skewY(0deg); }
+  30% { transform: skewX(-12.5deg) skewY(-12.5deg); }
+  40% { transform: skewX(6.25deg) skewY(6.25deg); }
+  50% { transform: skewX(-3.125deg) skewY(-3.125deg); }
+  65% { transform: skewX(1.5625deg) skewY(1.5625deg); }
+  75% { transform: skewX(-0.78125deg) skewY(-0.78125deg); }
+}
+
+@keyframes celebrate {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.2) rotate(-5deg); }
+  50% { transform: scale(1.3) rotate(5deg); }
+  75% { transform: scale(1.2) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="%23db2777" opacity="0.5"/><circle cx="10" cy="10" r="3" fill="%23db2777"/></svg>'), auto;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-poppins), system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+  
+  h1, h2, h3, h4 {
+    font-family: var(--font-greatvibes), 'Great Vibes', cursive;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 1px;
+    line-height: 1.3;
+    animation: slide-up-bounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  h1 {
+    font-size: 3.5rem;
+    letter-spacing: 2px;
+  }
+  
+  h2 {
+    font-size: 2.5rem;
+    letter-spacing: 1.5px;
+  }
+  
+  h3 {
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+
+  .logo-script {
+    font-family: var(--font-greatvibes), 'Great Vibes', cursive;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 3px;
+    line-height: 1;
+    font-size: 3.5rem;
+    animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  /* Playful idle animations */
+  .float-idle {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .wiggle-idle {
+    animation: wiggle 2s ease-in-out infinite;
+  }
+  
+  .pulse-idle {
+    animation: pulse-grow 2s ease-in-out infinite;
+  }
+  
+  .rotate-idle {
+    animation: rotate-slow 20s linear infinite;
+  }
+  
+  /* Interactive animations */
+  button, a, input, textarea, select {
+    @apply transition-all duration-200;
+  }
+  
+  button:active, a:active {
+    animation: pop 0.3s ease;
+  }
+  
+  /* Product card magic */
+  .product-card {
+    @apply transition-all duration-300 ease-out;
+    animation: slide-up-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  }
+  
+  .product-card:hover {
+    @apply -translate-y-4 rotate-1 scale-105;
+    filter: drop-shadow(0 25px 50px rgba(219, 39, 119, 0.3));
+    animation: jello 0.6s ease;
+  }
+  
+  .product-card img {
+    @apply transition-all duration-500;
+  }
+  
+  .product-card:hover img {
+    @apply scale-110 rotate-2;
+  }
+  
+  /* Squishy buttons */
+  .btn-squishy {
+    @apply transition-all duration-200 active:scale-95;
+  }
+  
+  .btn-squishy:hover {
+    @apply scale-105;
+    animation: wiggle 0.5s ease;
+  }
+  
+  .btn-squishy:active {
+    animation: pop 0.2s ease;
+  }
+  
+  /* Loading spinner */
+  .spinner {
+    animation: rotate-slow 1s linear infinite;
+  }
+  
+  /* Page load animations */
+  section {
+    animation: slide-up-bounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  }
+  
+  section:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+  
+  section:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+  
+  section:nth-child(4) {
+    animation-delay: 0.3s;
+  }
+  
+  /* Stagger product card animations */
+  .product-card:nth-child(1) { animation-delay: 0s; }
+  .product-card:nth-child(2) { animation-delay: 0.1s; }
+  .product-card:nth-child(3) { animation-delay: 0.2s; }
+  .product-card:nth-child(4) { animation-delay: 0.3s; }
+  .product-card:nth-child(5) { animation-delay: 0.4s; }
+  .product-card:nth-child(6) { animation-delay: 0.5s; }
+  
+  /* Parallax effect helpers */
+  .parallax-slow {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  /* Custom cursor interactions */
+  a:hover, button:hover {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23db2777" opacity="0.8"/><circle cx="12" cy="12" r="4" fill="white"/></svg>'), pointer;
+  }
+  
+  /* Text reveal animations */
+  p, li, span {
+    animation: slide-up-bounce 0.6s ease backwards;
+  }
+  
+  .celebrate {
+    animation: celebrate 0.5s ease;
+  }
+}
