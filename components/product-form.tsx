@@ -226,6 +226,15 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
+    
+    // Manually add category_id and brand_id from state since Radix Select doesn't populate FormData
+    if (formData.category_id) {
+      data.set('category_id', formData.category_id);
+    }
+    if (formData.brand_id) {
+      data.set('brand_id', formData.brand_id);
+    }
+    
     await onSubmit(data);
   };
 
