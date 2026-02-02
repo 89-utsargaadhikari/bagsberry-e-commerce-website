@@ -4,6 +4,8 @@ import { Great_Vibes, Poppins } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { CartProvider } from '@/lib/cart-context'
 import { UiSoundProvider } from '@/components/ui-sound-provider'
+import { MusicPlayer } from '@/components/music-player'
+import { Toaster } from '@/components/ui/toaster'
 import './globals.css'
 
 const greatVibes = Great_Vibes({
@@ -60,6 +62,8 @@ export default function RootLayout({
         <CartProvider>
           <UiSoundProvider>
             {children}
+            <MusicPlayer />
+            <Toaster />
             <Analytics />
           </UiSoundProvider>
         </CartProvider>

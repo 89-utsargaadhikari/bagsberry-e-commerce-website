@@ -42,7 +42,6 @@ export function UiSoundProvider({ children }: { children: React.ReactNode }) {
   const lastPlayedRef = useRef<Record<string, number>>({});
   const hasUserGestureRef = useRef(false);
   const previousPathRef = useRef<string | null>(null);
-  const welcomePlayedRef = useRef(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -203,60 +202,6 @@ export function UiSoundProvider({ children }: { children: React.ReactNode }) {
     };
   }, [resumeContext]);
 
-  // Play welcome message on load - ONLY ONCE
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (welcomePlayedRef.current) return;
-    if (!('speechSynthesis' in window)) return;
-    
-    // Mark as played immediately
-    welcomePlayedRef.current = true;
-    
-    const speakWelcome = () => {
-      // Cancel any existing speech
-      window.speechSynthesis.cancel();
-      
-      const voices = window.speechSynthesis.getVoices();
-      
-      // Find the best female voice (prioritize Zira for sexy, classy tone)
-      const femaleVoice = voices.find(voice => 
-        voice.name.toLowerCase().includes('zira') // Microsoft Zira - sexy, classy
-      ) || voices.find(voice => 
-        voice.name.toLowerCase().includes('samantha') // Apple Samantha - elegant
-      ) || voices.find(voice => 
-        voice.name.toLowerCase().includes('hazel') // Hazel - British, sophisticated
-      ) || voices.find(voice => 
-        voice.name.toLowerCase().includes('female') && voice.lang.startsWith('en')
-      ) || voices.find(voice => 
-        voice.lang.startsWith('en-') && 
-        !voice.name.toLowerCase().includes('male') &&
-        !voice.name.toLowerCase().includes('david') &&
-        !voice.name.toLowerCase().includes('george') &&
-        !voice.name.toLowerCase().includes('james')
-      );
-      
-      // Only speak if we found a female voice
-      if (femaleVoice) {
-        const utterance = new SpeechSynthesisUtterance('Welcome to Bagsberry');
-        utterance.rate = 0.8; // Slower, sultry pace
-        utterance.pitch = 0.9; // Lower pitch for sexiness
-        utterance.volume = 0.9;
-        utterance.voice = femaleVoice;
-        
-        window.speechSynthesis.speak(utterance);
-      }
-    };
-    
-    // Wait for voices to load, then play after a delay
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      setTimeout(speakWelcome, 1000); // Give page time to fully load
-    } else {
-      window.speechSynthesis.addEventListener('voiceschanged', () => {
-        setTimeout(speakWelcome, 1000);
-      }, { once: true });
-    }
-  }, []);
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
