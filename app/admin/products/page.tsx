@@ -15,11 +15,15 @@ interface Product {
   price: number;
   sale_price?: number;
   category: string;
+  category_id?: string;
+  brand_id?: string;
   description: string;
   image_url?: string;
   stock_quantity: number;
   is_featured: boolean;
   created_at: string;
+  categories?: { name: string; slug: string };
+  brands?: { name: string; slug: string };
 }
 
 export default function AdminProductsPage() {
@@ -33,7 +37,11 @@ export default function AdminProductsPage() {
         const supabase = createClient();
         const { data, error } = await supabase
           .from('products')
-          .select('*')
+          .select(`
+            *,
+            categories(name, slug),
+            brands(name, slug)
+          `)
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -133,7 +141,7 @@ export default function AdminProductsPage() {
                         Name
                       </th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                        Category
+                        Brand & Category
                       </th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                         Price
@@ -176,9 +184,26 @@ export default function AdminProductsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="inline-block rounded-full bg-primary/10 px-2 py-1 text-sm font-medium text-primary">
-                            {product.category}
-                          </span>
+                          <div className="flex flex-col gap-1.5">
+                            {product.brands?.name && (
+                              <span className="inline-block rounded-full bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-600">
+                                🏷️ {product.brands.name}
+                              </span>
+                            )}
+                            {product.categories?.name && (
+                              <span className="inline-block rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                                📂 {product.categories.name}
+                              </span>
+                            )}
+                            {!product.brands?.name && !product.categories?.name && product.category && (
+                              <span className="inline-block rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+                                {product.category}
+                              </span>
+                            )}
+                            {!product.brands?.name && !product.categories?.name && !product.category && (
+                              <span className="text-xs text-muted-foreground">Not set</span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <div>

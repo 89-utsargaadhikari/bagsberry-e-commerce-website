@@ -13,12 +13,18 @@ export function AdminHeader() {
             <div className="text-2xl font-bold text-primary">Bagsberry Admin</div>
           </Link>
 
-          <nav className="hidden gap-8 md:flex">
+          <nav className="hidden gap-6 md:flex">
             <Link href="/admin" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Dashboard
             </Link>
             <Link href="/admin/products" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Products
+            </Link>
+            <Link href="/admin/categories" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+              Categories
+            </Link>
+            <Link href="/admin/brands" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+              Brands
             </Link>
             <Link href="/admin/orders" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Orders

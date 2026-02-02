@@ -10,7 +10,7 @@ export async function uploadProductImage(file: File): Promise<string> {
 
   // Upload to Supabase Storage
   const { data, error } = await supabase.storage
-    .from('PRODUCT_IMAGES')
+    .from('product_images')
     .upload(filePath, file, {
       cacheControl: '3600',
       upsert: false,
@@ -23,7 +23,7 @@ export async function uploadProductImage(file: File): Promise<string> {
 
   // Get public URL
   const { data: { publicUrl } } = supabase.storage
-    .from('PRODUCT_IMAGES')
+    .from('product_images')
     .getPublicUrl(filePath);
 
   return publicUrl;
@@ -38,7 +38,7 @@ export async function deleteProductImage(imageUrl: string): Promise<void> {
   const filePath = pathParts.slice(pathParts.indexOf('products')).join('/');
 
   const { error } = await supabase.storage
-    .from('PRODUCT_IMAGES')
+    .from('product_images')
     .remove([filePath]);
 
   if (error) {

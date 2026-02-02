@@ -79,7 +79,9 @@ export async function POST(request: Request) {
 
     // Send order confirmation email (non-blocking)
     const orderNumber = order.id.substring(0, 8).toUpperCase();
-    fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/send-email`, {
+    const host = request.headers.get('host') || 'localhost:3001';
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    fetch(`${protocol}://${host}/api/send-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

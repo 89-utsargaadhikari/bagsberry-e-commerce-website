@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { AdminHeader } from '@/components/admin-header';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
+import { Plus, ShoppingBag, Package, Tag, Award } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -105,28 +108,56 @@ export default function AdminDashboard() {
               <h2 className="text-lg font-semibold text-foreground mb-4">
                 Quick Actions
               </h2>
-              <div className="space-y-2">
-                <a
-                  href="/admin/products/new"
-                  className="block p-3 rounded-lg hover:bg-secondary/10 transition-colors"
-                >
-                  <div className="font-medium text-foreground">Add New Product</div>
-                  <p className="text-sm text-foreground/60">Create a new product listing</p>
-                </a>
-                <a
-                  href="/admin/orders"
-                  className="block p-3 rounded-lg hover:bg-secondary/10 transition-colors"
-                >
-                  <div className="font-medium text-foreground">View Orders</div>
-                  <p className="text-sm text-foreground/60">Manage customer orders</p>
-                </a>
-                <a
-                  href="/admin/products"
-                  className="block p-3 rounded-lg hover:bg-secondary/10 transition-colors"
-                >
-                  <div className="font-medium text-foreground">Manage Products</div>
-                  <p className="text-sm text-foreground/60">Edit or delete products</p>
-                </a>
+              <div className="space-y-3">
+                <Link href="/admin/products/new">
+                  <Button className="w-full justify-start h-auto py-4" variant="outline">
+                    <Plus className="mr-3 h-5 w-5" />
+                    <div className="text-left">
+                      <div className="font-semibold">Add New Product</div>
+                      <p className="text-xs text-muted-foreground font-normal">Create a new product listing</p>
+                    </div>
+                  </Button>
+                </Link>
+                
+                <Link href="/admin/orders">
+                  <Button className="w-full justify-start h-auto py-4" variant="outline">
+                    <ShoppingBag className="mr-3 h-5 w-5" />
+                    <div className="text-left">
+                      <div className="font-semibold">View Orders</div>
+                      <p className="text-xs text-muted-foreground font-normal">Manage customer orders</p>
+                    </div>
+                  </Button>
+                </Link>
+                
+                <Link href="/admin/products">
+                  <Button className="w-full justify-start h-auto py-4" variant="outline">
+                    <Package className="mr-3 h-5 w-5" />
+                    <div className="text-left">
+                      <div className="font-semibold">Manage Products</div>
+                      <p className="text-xs text-muted-foreground font-normal">Edit or delete products</p>
+                    </div>
+                  </Button>
+                </Link>
+
+                <Link href="/admin/categories">
+                  <Button className="w-full justify-start h-auto py-4" variant="outline">
+                    <Tag className="mr-3 h-5 w-5" />
+                    <div className="text-left">
+                      <div className="font-semibold">Manage Categories</div>
+                      <p className="text-xs text-muted-foreground font-normal">Add or edit product categories</p>
+                    </div>
+                  </Button>
+                </Link>
+
+                <Link href="/admin/brands">
+                  <Button className="w-full justify-start h-auto py-4" variant="outline">
+                    <Award className="mr-3 h-5 w-5" />
+                    <div className="text-left">
+                      <div className="font-semibold">Manage Brands</div>
+                      <p className="text-xs text-muted-foreground font-normal">Add or edit luxury brands</p>
+                    </div>
+                  </Button>
+                </Link>
               </div>
             </Card>
 
