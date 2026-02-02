@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { AdminHeader } from '@/components/admin-header';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/client';
 import {
   Select,
@@ -11,20 +13,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { Edit, Eye } from 'lucide-react';
+import Link from 'next/link';
 
 interface Order {
   id: string;
   customer_name: string;
   customer_email: string;
+  customer_phone: string;
   total_amount: number;
   status: string;
+  tracking_number?: string;
+  estimated_delivery?: string;
   created_at: string;
 }
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [estimatedDelivery, setEstimatedDelivery] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -67,16 +85,57 @@ export default function AdminOrdersPage() {
         throw new Error(error.message);
       }
 
-      setOrders(
-        orders.map((order) =>
-          order.id === orderId ? { ...order, status: newStatus } : order
-        )
+      const updatedOrders = orders.map((order) =>
+        order.id === orderId ? { ...order, status: newStatus } : order
       );
+      setOrders(updatedOrders);
 
       toast({
         title: 'Success',
         description: 'Order status updated',
       });
+
+      // Send email notification for status change
+      const order = updatedOrders.find(o => o.id === orderId);
+      if (order && ['confirmed', 'processing', 'shipped', 'delivered'].includes(newStatus)) {
+        // Fetch order items and shipping info
+        const { data: orderData } = await supabase
+          .from('orders')
+          .select('*, order_items(*, products(name))')
+          .eq('id', orderId)
+          .single();
+
+        if (orderData) {
+          const shippingInfo = JSON.parse(orderData.shipping_address || '{}');
+          
+          fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/send-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: `order-${newStatus}`,
+              to: order.customer_email,
+              data: {
+                customerName: order.customer_name,
+                orderNumber: order.id.substring(0, 8).toUpperCase(),
+                items: orderData.order_items.map((item: any) => ({
+                  name: item.products.name,
+                  quantity: item.quantity,
+                  price: item.price,
+                })),
+                total: order.total_amount,
+                shippingAddress: {
+                  address: shippingInfo.address || '',
+                  city: shippingInfo.city || '',
+                  state: shippingInfo.state || '',
+                  zip: shippingInfo.zip || '',
+                },
+                trackingNumber: order.tracking_number,
+                estimatedDelivery: order.estimated_delivery,
+              },
+            }),
+          }).catch(err => console.error('❌ Failed to send status email:', err));
+        }
+      }
     } catch (err) {
       console.log('[v0] Error updating order:', err);
       toast({
@@ -87,10 +146,69 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const handleEditOrder = (order: Order) => {
+    setEditingOrder(order);
+    setTrackingNumber(order.tracking_number || '');
+    setEstimatedDelivery(order.estimated_delivery || '');
+    setDialogOpen(true);
+  };
+
+  const handleSaveTracking = async () => {
+    if (!editingOrder) return;
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          tracking_number: trackingNumber || null,
+          estimated_delivery: estimatedDelivery || null,
+        })
+        .eq('id', editingOrder.id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      setOrders(
+        orders.map((order) =>
+          order.id === editingOrder.id
+            ? {
+                ...order,
+                tracking_number: trackingNumber || undefined,
+                estimated_delivery: estimatedDelivery || undefined,
+              }
+            : order
+        )
+      );
+
+      toast({
+        title: 'Success',
+        description: 'Tracking information updated',
+      });
+
+      setDialogOpen(false);
+      setEditingOrder(null);
+    } catch (err) {
+      console.log('[v0] Error updating tracking:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to update tracking information',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
+      case 'delivered':
         return 'bg-green-100 text-green-800';
+      case 'shipped':
+        return 'bg-blue-100 text-blue-800';
+      case 'processing':
+        return 'bg-purple-100 text-purple-800';
+      case 'confirmed':
+        return 'bg-teal-100 text-teal-800';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
       case 'cancelled':
@@ -141,16 +259,19 @@ export default function AdminOrdersPage() {
                         Customer
                       </th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                        Email
-                      </th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                         Amount
                       </th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                         Status
                       </th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
+                        Tracking
+                      </th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                         Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
+                        Actions
                       </th>
                     </tr>
                   </thead>
@@ -158,16 +279,16 @@ export default function AdminOrdersPage() {
                     {orders.map((order) => (
                       <tr key={order.id} className="hover:bg-secondary/5">
                         <td className="px-6 py-4 font-mono text-sm text-foreground">
-                          {order.id.substring(0, 8)}...
+                          #{order.id.substring(0, 8).toUpperCase()}
                         </td>
-                        <td className="px-6 py-4 text-foreground">
-                          {order.customer_name}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-foreground/70">
-                          {order.customer_email}
+                        <td className="px-6 py-4">
+                          <div>
+                            <p className="font-medium text-foreground">{order.customer_name}</p>
+                            <p className="text-sm text-foreground/70">{order.customer_email}</p>
+                          </div>
                         </td>
                         <td className="px-6 py-4 font-semibold text-foreground">
-                          ${order.total_amount.toFixed(2)}
+                          NPR {order.total_amount.toFixed(2)}
                         </td>
                         <td className="px-6 py-4">
                           <Select
@@ -176,21 +297,48 @@ export default function AdminOrdersPage() {
                               handleStatusChange(order.id, value)
                             }
                           >
-                            <SelectTrigger className="w-32">
+                            <SelectTrigger className="w-36">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="pending">Pending</SelectItem>
-                              <SelectItem value="processing">
-                                Processing
-                              </SelectItem>
-                              <SelectItem value="completed">Completed</SelectItem>
+                              <SelectItem value="confirmed">Confirmed</SelectItem>
+                              <SelectItem value="processing">Processing</SelectItem>
+                              <SelectItem value="shipped">Shipped</SelectItem>
+                              <SelectItem value="delivered">Delivered</SelectItem>
                               <SelectItem value="cancelled">Cancelled</SelectItem>
                             </SelectContent>
                           </Select>
                         </td>
+                        <td className="px-6 py-4 text-sm">
+                          {order.tracking_number ? (
+                            <span className="font-mono text-foreground">{order.tracking_number}</span>
+                          ) : (
+                            <span className="text-foreground/50">Not set</span>
+                          )}
+                        </td>
                         <td className="px-6 py-4 text-sm text-foreground/70">
                           {new Date(order.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditOrder(order)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              asChild
+                            >
+                              <Link href={`/orders/${order.id}`}>
+                                <Eye className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -200,6 +348,51 @@ export default function AdminOrdersPage() {
             </Card>
           )}
         </div>
+
+        {/* Edit Tracking Dialog */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Update Tracking Information</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Tracking Number
+                </label>
+                <Input
+                  placeholder="Enter tracking number"
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                />
+                <p className="text-xs text-foreground/70 mt-1">
+                  Nepal Post, Pathao, or other courier tracking number
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Estimated Delivery Date
+                </label>
+                <Input
+                  type="date"
+                  value={estimatedDelivery}
+                  onChange={(e) => setEstimatedDelivery(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2 justify-end pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveTracking}>
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
     </>
   );

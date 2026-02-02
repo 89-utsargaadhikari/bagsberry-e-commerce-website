@@ -23,6 +23,9 @@ export function AdminHeader() {
             <Link href="/admin/orders" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Orders
             </Link>
+            <Link href="/admin/music" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+              🎵 Music
+            </Link>
           </nav>
 
           <Button variant="ghost" size="sm" className="gap-2">

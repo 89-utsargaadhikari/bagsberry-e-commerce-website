@@ -1,17 +1,107 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
-import { CreditCard, Lock, CheckCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import { useCart } from '@/lib/cart-context';
+import dynamic from 'next/dynamic';
+
+// Dynamic import for map to avoid SSR issues
+const LocationPicker = dynamic(
+  () => import('@/components/location-picker').then(mod => ({ default: mod.LocationPicker })),
+  { ssr: false }
+);
 
 export default function CheckoutPage() {
-  const [step, setStep] = useState(1);
+  const router = useRouter();
+  const { items, total, clearCart } = useCart();
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderNumber, setOrderNumber] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [shippingInfo, setShippingInfo] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    province: '',
+    postalCode: '',
+  });
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    // Redirect if cart is empty
+    if (!orderPlaced && items.length === 0) {
+      router.push('/cart');
+    }
+  }, [items, orderPlaced, router]);
+
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const shipping = total > 3000 ? 0 : 150; // NPR pricing: Free shipping over NPR 3000, else NPR 150
+      const tax = 0; // No tax for now (Nepal VAT can be added later if needed)
+      const finalTotal = total + shipping + tax;
+
+      // Generate Google Maps URL if location is set
+      const mapUrl = location 
+        ? `https://www.google.com/maps?q=${location.lat},${location.lng}`
+        : null;
+
+      const response = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: items.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          shippingInfo: {
+            name: `${shippingInfo.firstName} ${shippingInfo.lastName}`,
+            email: shippingInfo.email,
+            phone: shippingInfo.phone,
+            address: shippingInfo.address,
+            city: shippingInfo.city,
+            state: shippingInfo.province, // Using province field but mapping to state for backend compatibility
+            zip: shippingInfo.postalCode,
+          },
+          location: location ? {
+            latitude: location.lat,
+            longitude: location.lng,
+            mapUrl: mapUrl,
+          } : null,
+          total: finalTotal,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create order');
+      }
+
+      setOrderNumber(data.orderNumber);
+      setOrderPlaced(true);
+      clearCart();
+    } catch (error: any) {
+      console.error('Order error:', error);
+      alert(error.message || 'Failed to place order. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (orderPlaced) {
     return (
@@ -26,7 +116,7 @@ export default function CheckoutPage() {
               🎉 Order Confirmed!
             </h1>
             <p className="text-lg text-foreground/70 mb-8">
-              Your order #12345 has been placed successfully!
+              Your order #{orderNumber} has been placed successfully!
               <br />
               We'll send you a confirmation email shortly.
             </p>
@@ -53,195 +143,156 @@ export default function CheckoutPage() {
             <h1 className="text-4xl font-bold text-foreground sm:text-5xl">
               🛒 Checkout
             </h1>
-            <div className="flex gap-4 mt-6">
-              {[1, 2, 3].map((s) => (
-                <div
-                  key={s}
-                  className={`flex-1 h-2 rounded-full transition-all duration-500 ${
-                    s <= step ? 'bg-primary scale-105' : 'bg-muted'
-                  }`}
-                />
-              ))}
-            </div>
+            <p className="text-foreground/70 mt-2">
+              Complete your order details below
+            </p>
           </div>
         </section>
 
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-8">
-              {step === 1 && (
-                <Card className="p-8 product-card">
-                  <h2 className="text-2xl font-bold text-foreground mb-6">
-                    📦 Shipping Information
-                  </h2>
-                  <form className="space-y-6">
-                    <div className="grid gap-6 sm:grid-cols-2">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          First Name
-                        </label>
-                        <Input placeholder="Jane" className="btn-squishy" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Last Name
-                        </label>
-                        <Input placeholder="Doe" className="btn-squishy" />
-                      </div>
+            <div className="lg:col-span-2">
+              <Card className="p-8 product-card">
+                <h2 className="text-2xl font-bold text-foreground mb-6">
+                  📦 Delivery Information
+                </h2>
+                <form className="space-y-6" onSubmit={handlePlaceOrder}>
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        First Name
+                      </label>
+                      <Input 
+                        placeholder="Rajesh" 
+                        className="btn-squishy"
+                        value={shippingInfo.firstName}
+                        onChange={(e) => setShippingInfo({...shippingInfo, firstName: e.target.value})}
+                        required
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Email
+                        Last Name
                       </label>
-                      <Input type="email" placeholder="jane@example.com" className="btn-squishy" />
+                      <Input 
+                        placeholder="Sharma" 
+                        className="btn-squishy"
+                        value={shippingInfo.lastName}
+                        onChange={(e) => setShippingInfo({...shippingInfo, lastName: e.target.value})}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Email Address
+                    </label>
+                    <Input 
+                      type="email" 
+                      placeholder="rajesh@example.com" 
+                      className="btn-squishy"
+                      value={shippingInfo.email}
+                      onChange={(e) => setShippingInfo({...shippingInfo, email: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Phone Number
+                    </label>
+                    <Input 
+                      placeholder="+977-98XXXXXXXX" 
+                      className="btn-squishy"
+                      value={shippingInfo.phone}
+                      onChange={(e) => setShippingInfo({...shippingInfo, phone: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Delivery Address
+                    </label>
+                    <Textarea 
+                      placeholder="Thamel, Kathmandu" 
+                      className="btn-squishy"
+                      value={shippingInfo.address}
+                      onChange={(e) => setShippingInfo({...shippingInfo, address: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-6 sm:grid-cols-3">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        City
+                      </label>
+                      <Input 
+                        placeholder="Kathmandu" 
+                        className="btn-squishy"
+                        value={shippingInfo.city}
+                        onChange={(e) => setShippingInfo({...shippingInfo, city: e.target.value})}
+                        required
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Phone Number
+                        Province/District
                       </label>
-                      <Input placeholder="+1 (555) 000-0000" className="btn-squishy" />
+                      <Input 
+                        placeholder="Bagmati Province" 
+                        className="btn-squishy"
+                        value={shippingInfo.province}
+                        onChange={(e) => setShippingInfo({...shippingInfo, province: e.target.value})}
+                        required
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Address
+                        Postal Code
                       </label>
-                      <Textarea placeholder="123 Fashion Ave, Suite 100" className="btn-squishy" />
+                      <Input 
+                        placeholder="44600" 
+                        className="btn-squishy"
+                        value={shippingInfo.postalCode}
+                        onChange={(e) => setShippingInfo({...shippingInfo, postalCode: e.target.value})}
+                        pattern="[0-9]{5}"
+                        title="Please enter a 5-digit postal code"
+                        required
+                      />
                     </div>
-                    <div className="grid gap-6 sm:grid-cols-3">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          City
-                        </label>
-                        <Input placeholder="New York" className="btn-squishy" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          State
-                        </label>
-                        <Input placeholder="NY" className="btn-squishy" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          ZIP
-                        </label>
-                        <Input placeholder="10001" className="btn-squishy" />
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => setStep(2)}
-                      type="button"
-                      className="w-full btn-squishy"
-                      size="lg"
-                      data-sound="pop"
-                    >
-                      Continue to Payment →
-                    </Button>
-                  </form>
-                </Card>
-              )}
+                  </div>
 
-              {step === 2 && (
-                <Card className="p-8 product-card">
-                  <h2 className="text-2xl font-bold text-foreground mb-6">
-                    💳 Payment Information
-                  </h2>
-                  <div className="bg-primary/5 border-2 border-primary/20 rounded-2xl p-6 mb-6 text-center">
-                    <Lock className="h-12 w-12 text-primary mx-auto mb-4 wiggle-idle" />
+                  {/* Location Picker */}
+                  <div className="pt-4 border-t">
+                    <LocationPicker
+                      onLocationSelect={(lat, lng) => {
+                        setLocation({ lat, lng });
+                      }}
+                      initialLat={27.7172}
+                      initialLng={85.3240}
+                    />
+                  </div>
+
+                  <div className="bg-primary/5 border-2 border-primary/20 rounded-2xl p-6 text-center">
                     <p className="text-foreground/70 font-medium">
-                      🔒 <strong>Safe Payment Placeholder</strong>
+                      📦 <strong>Cash on Delivery</strong>
                       <br />
                       <span className="text-sm">
-                        In production, this would integrate with Stripe/PayPal
+                        Pay when you receive your order
                       </span>
                     </p>
                   </div>
-                  <form className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Card Number
-                      </label>
-                      <Input placeholder="1234 5678 9012 3456" className="btn-squishy" disabled />
-                    </div>
-                    <div className="grid gap-6 sm:grid-cols-2">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Expiry Date
-                        </label>
-                        <Input placeholder="MM/YY" className="btn-squishy" disabled />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          CVV
-                        </label>
-                        <Input placeholder="123" className="btn-squishy" disabled />
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <Button
-                        onClick={() => setStep(1)}
-                        type="button"
-                        variant="outline"
-                        className="flex-1 btn-squishy"
-                        data-sound="tap"
-                      >
-                        ← Back
-                      </Button>
-                      <Button
-                        onClick={() => setStep(3)}
-                        type="button"
-                        className="flex-1 btn-squishy"
-                        data-sound="pop"
-                      >
-                        Review Order →
-                      </Button>
-                    </div>
-                  </form>
-                </Card>
-              )}
 
-              {step === 3 && (
-                <Card className="p-8 product-card">
-                  <h2 className="text-2xl font-bold text-foreground mb-6">
-                    ✅ Review Your Order
-                  </h2>
-                  <div className="space-y-6 mb-6">
-                    <div className="p-4 bg-secondary/5 rounded-xl">
-                      <h3 className="font-semibold text-foreground mb-2">Shipping To:</h3>
-                      <p className="text-foreground/70">
-                        Jane Doe<br />
-                        123 Fashion Ave, Suite 100<br />
-                        New York, NY 10001
-                      </p>
-                    </div>
-                    <div className="p-4 bg-secondary/5 rounded-xl">
-                      <h3 className="font-semibold text-foreground mb-2">Payment Method:</h3>
-                      <div className="flex items-center gap-2 text-foreground/70">
-                        <CreditCard className="h-5 w-5" />
-                        <span>•••• •••• •••• 3456</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <Button
-                      onClick={() => setStep(2)}
-                      type="button"
-                      variant="outline"
-                      className="flex-1 btn-squishy"
-                      data-sound="tap"
-                    >
-                      ← Back
-                    </Button>
-                    <Button
-                      onClick={() => setOrderPlaced(true)}
-                      type="button"
-                      className="flex-1 btn-squishy bg-primary hover:bg-primary/90"
-                      data-sound="whoop"
-                    >
-                      🎉 Place Order
-                    </Button>
-                  </div>
-                </Card>
-              )}
+                  <Button
+                    type="submit"
+                    className="w-full btn-squishy bg-primary hover:bg-primary/90"
+                    size="lg"
+                    data-sound="whoop"
+                    disabled={loading}
+                  >
+                    {loading ? 'Processing...' : '🎉 Place Order'}
+                  </Button>
+                </form>
+              </Card>
             </div>
 
             <div>
@@ -251,36 +302,36 @@ export default function CheckoutPage() {
                 </h2>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-foreground/70">Subtotal (2 items)</span>
-                    <span className="font-medium">$489.98</span>
+                    <span className="text-foreground/70">Subtotal ({items.length} items)</span>
+                    <span className="font-medium">NPR {total.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-foreground/70">Shipping</span>
-                    <span className="font-medium text-primary">FREE ✨</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground/70">Tax</span>
-                    <span className="font-medium">$48.99</span>
+                    <span className="text-foreground/70">Delivery Charge</span>
+                    <span className="font-medium text-primary">
+                      {total > 3000 ? 'FREE ✨' : `NPR ${(150).toFixed(2)}`}
+                    </span>
                   </div>
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex justify-between">
                     <span className="font-semibold text-foreground">Total</span>
-                    <span className="text-xl font-bold text-primary">$538.97</span>
+                    <span className="text-xl font-bold text-primary">
+                      NPR {(total + (total > 3000 ? 0 : 150)).toFixed(2)}
+                    </span>
                   </div>
                 </div>
                 <div className="rounded-lg bg-primary/5 p-4 space-y-2 text-xs text-foreground/70">
                   <div className="flex gap-2">
                     <span>🚚</span>
-                    <span>Free shipping on all orders!</span>
+                    <span>Free delivery on orders over NPR 3000</span>
                   </div>
                   <div className="flex gap-2">
-                    <span>🛡️</span>
-                    <span>30-day money-back guarantee</span>
+                    <span>💰</span>
+                    <span>Cash on Delivery available</span>
                   </div>
                   <div className="flex gap-2">
-                    <span>💬</span>
-                    <span>24/7 customer support</span>
+                    <span>📞</span>
+                    <span>Customer support available</span>
                   </div>
                 </div>
               </Card>

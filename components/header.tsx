@@ -1,12 +1,44 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, User, Volume2, VolumeX, Heart } from 'lucide-react';
+import { ShoppingBag, User, Volume2, VolumeX, Heart, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUiSounds } from '@/components/ui-sound-provider';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
+import { useCart } from '@/lib/cart-context';
 
 export function Header() {
   const { enabled, toggle } = useUiSounds();
+  const router = useRouter();
+  const { items } = useCart();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+
+    fetchUser();
+
+    // Listen for auth changes
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/');
+    router.refresh();
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -50,14 +82,38 @@ export function Header() {
                 <Heart className="h-5 w-5" />
               </Link>
             </Button>
+            {user ? (
+              <>
+                <Button variant="ghost" size="icon" asChild data-sound="tap" className="btn-squishy">
+                  <Link href="/orders">
+                    <User className="h-5 w-5" />
+                  </Link>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  data-sound="tap" 
+                  className="btn-squishy"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </>
+            ) : (
             <Button variant="ghost" size="icon" asChild data-sound="tap" className="btn-squishy">
               <Link href="/login">
                 <User className="h-5 w-5" />
               </Link>
             </Button>
-            <Button variant="ghost" size="icon" asChild data-sound="swoosh" className="btn-squishy">
+            )}
+            <Button variant="ghost" size="icon" asChild data-sound="swoosh" className="btn-squishy relative">
               <Link href="/cart">
                 <ShoppingBag className="h-5 w-5" />
+                {items.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {items.length}
+                  </span>
+                )}
               </Link>
             </Button>
           </div>
