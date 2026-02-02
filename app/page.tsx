@@ -2,25 +2,33 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/client';
 import { useUiSounds } from '@/components/ui-sound-provider';
+import { useCart } from '@/lib/cart-context';
+import { Zap } from 'lucide-react';
 
 interface Product {
   id: string;
   name: string;
   price: number;
+  sale_price?: number;
   category: string;
   image_url: string;
   description: string;
+  stock_quantity: number;
+  is_featured: boolean;
 }
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { play } = useUiSounds();
+  const { addItem } = useCart();
+  const router = useRouter();
   const loadedOnceRef = useRef(false);
 
   useEffect(() => {
@@ -63,6 +71,25 @@ export default function Home() {
       }
     }
   }, [loading, products.length, play]);
+
+  const handleBuyNow = (product: Product) => {
+    if (product.stock_quantity === 0) {
+      return; // Don't add out of stock items
+    }
+    
+    const effectivePrice = product.sale_price && product.sale_price < product.price 
+      ? product.sale_price 
+      : product.price;
+    
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price: effectivePrice,
+      quantity: 1,
+      image_url: product.image_url,
+    });
+    router.push('/checkout');
+  };
 
   return (
     <>
@@ -137,13 +164,14 @@ export default function Home() {
               ) : (
                 <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                   {products.map((product, index) => (
-                    <Link key={product.id} href={`/products/${product.id}`} data-sound="tap">
-                      <div
-                        data-sound-hover="tick"
-                        className="product-card group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 hover:border-primary/30 rounded-3xl bg-card"
-                        style={{ animationDelay: `${index * 0.1}s` }}
-                      >
-                        <div className="aspect-square overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 relative">
+                    <div
+                      key={product.id}
+                      data-sound-hover="tick"
+                      className="product-card group overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 hover:border-primary/30 rounded-3xl bg-card"
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <Link href={`/products/${product.id}`} data-sound="tap">
+                        <div className="aspect-square overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 relative cursor-pointer">
                           <img
                             src={product.image_url}
                             alt={product.name}
@@ -158,24 +186,55 @@ export default function Home() {
                             ✨ NEW
                           </div>
                         </div>
-                        <div className="space-y-3 p-6 relative">
-                          <h3 className="font-semibold text-foreground line-clamp-2 text-xl group-hover:text-primary transition-colors">
+                      </Link>
+                      <div className="space-y-3 p-6 relative">
+                        <Link href={`/products/${product.id}`} data-sound="tap">
+                          <h3 className="font-semibold text-foreground line-clamp-2 text-xl group-hover:text-primary transition-colors cursor-pointer">
                             {product.name}
                           </h3>
-                          <p className="text-sm text-foreground/60 uppercase tracking-wide">
-                            {product.category}
-                          </p>
-                          <div className="flex items-center justify-between">
+                        </Link>
+                        <p className="text-sm text-foreground/60 uppercase tracking-wide">
+                          {product.category}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          {product.sale_price && product.sale_price < product.price ? (
+                            <>
+                              <p className="text-2xl font-bold text-primary">
+                                NPR {product.sale_price.toFixed(2)}
+                              </p>
+                              <p className="text-lg text-foreground/50 line-through">
+                                NPR {product.price.toFixed(2)}
+                              </p>
+                            </>
+                          ) : (
                             <p className="text-2xl font-bold text-primary">
-                              ${product.price.toFixed(2)}
+                              NPR {product.price.toFixed(2)}
                             </p>
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
-                              <span className="text-primary group-hover:text-white text-xl">→</span>
-                            </div>
-                          </div>
+                          )}
                         </div>
+                        {product.stock_quantity > 0 ? (
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBuyNow(product);
+                            }}
+                            className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+                            data-sound="bounce"
+                          >
+                            <Zap className="h-4 w-4" />
+                            Buy Now
+                          </Button>
+                        ) : (
+                          <Button
+                            disabled
+                            className="w-full gap-2"
+                            variant="secondary"
+                          >
+                            Out of Stock
+                          </Button>
+                        )}
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}

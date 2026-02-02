@@ -2,32 +2,38 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ChevronLeft, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, ShoppingBag, Zap } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useUiSounds } from '@/components/ui-sound-provider';
+import { useCart } from '@/lib/cart-context';
 
 interface Product {
   id: string;
   name: string;
   price: number;
+  sale_price?: number;
   category: string;
   image_url: string;
   description: string;
+  stock_quantity: number;
+  is_featured: boolean;
 }
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const productId = params.id as string;
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const { toast } = useToast();
   const { play } = useUiSounds();
+  const { addItem } = useCart();
   const loadedOnceRef = useRef(false);
 
   useEffect(() => {
@@ -66,11 +72,75 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (product) {
+      if (product.stock_quantity === 0) {
+        toast({
+          title: 'Out of Stock',
+          description: 'This product is currently unavailable',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      if (quantity > product.stock_quantity) {
+        toast({
+          title: 'Insufficient Stock',
+          description: `Only ${product.stock_quantity} items available`,
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      const effectivePrice = product.sale_price && product.sale_price < product.price 
+        ? product.sale_price 
+        : product.price;
+      
+      addItem({
+        productId: product.id,
+        name: product.name,
+        price: effectivePrice,
+        quantity: quantity,
+        image_url: product.image_url,
+      });
       toast({
         title: 'Added to cart',
         description: `${product.name} x ${quantity} added to your cart`,
       });
       setQuantity(1);
+    }
+  };
+
+  const handleBuyNow = () => {
+    if (product) {
+      if (product.stock_quantity === 0) {
+        toast({
+          title: 'Out of Stock',
+          description: 'This product is currently unavailable',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      if (quantity > product.stock_quantity) {
+        toast({
+          title: 'Insufficient Stock',
+          description: `Only ${product.stock_quantity} items available`,
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      const effectivePrice = product.sale_price && product.sale_price < product.price 
+        ? product.sale_price 
+        : product.price;
+      
+      addItem({
+        productId: product.id,
+        name: product.name,
+        price: effectivePrice,
+        quantity: quantity,
+        image_url: product.image_url,
+      });
+      router.push('/checkout');
     }
   };
 
@@ -164,12 +234,35 @@ export default function ProductDetailPage() {
 
               {/* Price */}
               <div className="space-y-2">
-                <p className="text-4xl font-bold text-primary">
-                  ${product.price.toFixed(2)}
-                </p>
-                <p className="text-foreground/70">
-                  Premium quality, handcrafted with excellence
-                </p>
+                <div className="flex items-center gap-3">
+                  {product.sale_price && product.sale_price < product.price ? (
+                    <>
+                      <p className="text-4xl font-bold text-primary">
+                        NPR {product.sale_price.toFixed(2)}
+                      </p>
+                      <p className="text-2xl text-foreground/50 line-through">
+                        NPR {product.price.toFixed(2)}
+                      </p>
+                      <span className="bg-green-500 text-white text-sm px-3 py-1 rounded-full font-semibold">
+                        Save {Math.round(((product.price - product.sale_price) / product.price) * 100)}%
+                      </span>
+                    </>
+                  ) : (
+                    <p className="text-4xl font-bold text-primary">
+                      NPR {product.price.toFixed(2)}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-foreground/70">
+                    Premium quality, handcrafted with excellence
+                  </p>
+                  {product.stock_quantity > 0 && product.stock_quantity < 10 && (
+                    <span className="text-orange-600 text-sm font-semibold">
+                      • Only {product.stock_quantity} left!
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Description */}
@@ -205,40 +298,65 @@ export default function ProductDetailPage() {
 
               {/* Quantity & Add to Cart */}
               <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-foreground">Quantity</span>
-                  <div className="flex items-center gap-2 border rounded-lg bg-background">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      data-sound="tap"
-                      className="px-4 py-2 text-foreground hover:bg-secondary/10"
+                {product.stock_quantity > 0 ? (
+                  <>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm font-medium text-foreground">Quantity</span>
+                      <div className="flex items-center gap-2 border rounded-lg bg-background">
+                        <button
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          data-sound="tap"
+                          className="px-4 py-2 text-foreground hover:bg-secondary/10"
+                          disabled={quantity <= 1}
+                        >
+                          −
+                        </button>
+                        <span className="w-8 text-center font-medium">{quantity}</span>
+                        <button
+                          onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+                          data-sound="tap"
+                          className="px-4 py-2 text-foreground hover:bg-secondary/10"
+                          disabled={quantity >= product.stock_quantity}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-sm text-foreground/60">
+                        ({product.stock_quantity} available)
+                      </span>
+                    </div>
+
+                    <Button
+                      onClick={handleBuyNow}
+                      size="lg"
+                      className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+                      data-sound="bounce"
                     >
-                      −
-                    </button>
-                    <span className="w-8 text-center font-medium">{quantity}</span>
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
+                      <Zap className="h-5 w-5" />
+                      Buy Now
+                    </Button>
+
+                    <Button
+                      onClick={handleAddToCart}
+                      variant="outline"
+                      size="lg"
+                      className="w-full gap-2 bg-transparent"
                       data-sound="tap"
-                      className="px-4 py-2 text-foreground hover:bg-secondary/10"
                     >
-                      +
-                    </button>
+                      <ShoppingBag className="h-5 w-5" />
+                      Add to Cart
+                    </Button>
+                  </>
+                ) : (
+                  <div className="bg-destructive/10 border-2 border-destructive/20 rounded-lg p-6 text-center">
+                    <p className="text-destructive font-semibold text-lg mb-2">
+                      Out of Stock
+                    </p>
+                    <p className="text-foreground/70 text-sm">
+                      This product is currently unavailable. Check back soon!
+                    </p>
                   </div>
-                </div>
-
-                <Button
-                  onClick={handleAddToCart}
-                  size="lg"
-                  className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                  data-sound="bounce"
-                >
-                  <ShoppingBag className="h-5 w-5" />
-                  Add to Cart
-                </Button>
-
-                <Button variant="outline" size="lg" className="w-full bg-transparent">
-                  Add to Wishlist
-                </Button>
+                )}
               </div>
 
               {/* Trust Badges */}

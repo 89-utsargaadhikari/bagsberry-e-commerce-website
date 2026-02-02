@@ -20,9 +20,12 @@ interface Product {
   id: string;
   name: string;
   price: number;
+  sale_price?: number;
   category: string;
   image_url: string;
   description: string;
+  stock_quantity: number;
+  is_featured: boolean;
 }
 
 export default function ProductsPage() {
@@ -208,8 +211,32 @@ export default function ProductsPage() {
                       <Link key={product.id} href={`/products/${product.id}`} data-sound="tap">
                         <Card
                           data-sound-hover="tick"
-                          className="group overflow-hidden hover:shadow-2xl transition-all duration-300 h-full cursor-pointer hover:-translate-y-2 border-2 hover:border-primary/30"
+                          className="group overflow-hidden hover:shadow-2xl transition-all duration-300 h-full cursor-pointer hover:-translate-y-2 border-2 hover:border-primary/30 relative"
                         >
+                          {/* Badges */}
+                          <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+                            {product.is_featured && (
+                              <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full font-semibold">
+                                ⭐ Featured
+                              </span>
+                            )}
+                            {product.sale_price && product.sale_price < product.price && (
+                              <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                🏷️ On Sale
+                              </span>
+                            )}
+                            {product.stock_quantity === 0 && (
+                              <span className="bg-destructive text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                Out of Stock
+                              </span>
+                            )}
+                            {product.stock_quantity > 0 && product.stock_quantity < 5 && (
+                              <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                Low Stock
+                              </span>
+                            )}
+                          </div>
+                          
                           <div className="aspect-square overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10">
                             <img
                               src={product.image_url}
@@ -226,9 +253,22 @@ export default function ProductsPage() {
                               {product.name}
                             </h3>
                             <p className="text-sm text-foreground/60 uppercase tracking-wide">{product.category}</p>
-                            <p className="text-2xl font-bold text-primary">
-                              ${product.price.toFixed(2)}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              {product.sale_price && product.sale_price < product.price ? (
+                                <>
+                                  <p className="text-2xl font-bold text-primary">
+                                    NPR {product.sale_price.toFixed(2)}
+                                  </p>
+                                  <p className="text-lg text-foreground/50 line-through">
+                                    NPR {product.price.toFixed(2)}
+                                  </p>
+                                </>
+                              ) : (
+                                <p className="text-2xl font-bold text-primary">
+                                  NPR {product.price.toFixed(2)}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </Card>
                       </Link>

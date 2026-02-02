@@ -13,8 +13,12 @@ interface Product {
   id: string;
   name: string;
   price: number;
+  sale_price?: number;
   category: string;
   description: string;
+  image_url?: string;
+  stock_quantity: number;
+  is_featured: boolean;
   created_at: string;
 }
 
@@ -123,6 +127,9 @@ export default function AdminProductsPage() {
                   <thead className="border-b bg-secondary/5">
                     <tr>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
+                        Image
+                      </th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                         Name
                       </th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
@@ -132,7 +139,10 @@ export default function AdminProductsPage() {
                         Price
                       </th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                        Created
+                        Stock
+                      </th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
+                        Status
                       </th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                         Actions
@@ -142,6 +152,19 @@ export default function AdminProductsPage() {
                   <tbody className="divide-y">
                     {products.map((product) => (
                       <tr key={product.id} className="hover:bg-secondary/5">
+                        <td className="px-6 py-4">
+                          <div className="h-16 w-16 rounded-lg overflow-hidden border-2 border-primary/10">
+                            <img
+                              src={product.image_url || 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=200&q=80'}
+                              alt={product.name}
+                              className="h-full w-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=200&q=80';
+                              }}
+                            />
+                          </div>
+                        </td>
                         <td className="px-6 py-4">
                           <div>
                             <p className="font-medium text-foreground">
@@ -157,11 +180,52 @@ export default function AdminProductsPage() {
                             {product.category}
                           </span>
                         </td>
-                        <td className="px-6 py-4 font-semibold text-foreground">
-                          ${product.price.toFixed(2)}
+                        <td className="px-6 py-4">
+                          <div>
+                            <p className="font-semibold text-foreground">
+                              NPR {product.price.toFixed(2)}
+                            </p>
+                            {product.sale_price && product.sale_price < product.price && (
+                              <p className="text-xs text-primary font-medium">
+                                Sale: NPR {product.sale_price.toFixed(2)}
+                              </p>
+                            )}
+                          </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-foreground/70">
-                          {new Date(product.created_at).toLocaleDateString()}
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className={`font-semibold ${
+                              product.stock_quantity === 0 ? 'text-destructive' :
+                              product.stock_quantity < 5 ? 'text-orange-500' :
+                              'text-green-600'
+                            }`}>
+                              {product.stock_quantity}
+                            </span>
+                            {product.stock_quantity === 0 && (
+                              <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded">
+                                Out
+                              </span>
+                            )}
+                            {product.stock_quantity > 0 && product.stock_quantity < 5 && (
+                              <span className="text-xs bg-orange-500/10 text-orange-600 px-2 py-0.5 rounded">
+                                Low
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-1">
+                            {product.is_featured && (
+                              <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                                ⭐ Featured
+                              </span>
+                            )}
+                            {product.sale_price && product.sale_price < product.price && (
+                              <span className="inline-flex items-center gap-1 text-xs bg-green-500/10 text-green-600 px-2 py-0.5 rounded">
+                                🏷️ On Sale
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex gap-2">
