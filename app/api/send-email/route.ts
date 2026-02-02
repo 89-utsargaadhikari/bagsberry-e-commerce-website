@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
 import { render } from '@react-email/components';
+import React from 'react';
 import { OrderConfirmation } from '@/emails/order-confirmation';
 import { OrderEmail } from '@/emails/order-email';
 
@@ -28,71 +29,71 @@ export async function POST(request: Request) {
       case 'order-placed':
         subject = `Order Placed #${data.orderNumber} - Bagsberry`;
         emailHtml = render(
-          <OrderConfirmation
-            customerName={data.customerName}
-            orderNumber={data.orderNumber}
-            items={data.items}
-            total={data.total}
-            shippingAddress={data.shippingAddress}
-          />
+          React.createElement(OrderConfirmation, {
+            customerName: data.customerName,
+            orderNumber: data.orderNumber,
+            items: data.items,
+            total: data.total,
+            shippingAddress: data.shippingAddress,
+          })
         );
         break;
 
       case 'order-confirmed':
         subject = `Order Confirmed #${data.orderNumber} - Bagsberry`;
         emailHtml = render(
-          <OrderEmail
-            customerName={data.customerName}
-            orderNumber={data.orderNumber}
-            status="confirmed"
-            items={data.items}
-            total={data.total}
-            shippingAddress={data.shippingAddress}
-          />
+          React.createElement(OrderEmail, {
+            customerName: data.customerName,
+            orderNumber: data.orderNumber,
+            status: 'confirmed' as const,
+            items: data.items,
+            total: data.total,
+            shippingAddress: data.shippingAddress,
+          })
         );
         break;
 
       case 'order-processing':
         subject = `Order Processing #${data.orderNumber} - Bagsberry`;
         emailHtml = render(
-          <OrderEmail
-            customerName={data.customerName}
-            orderNumber={data.orderNumber}
-            status="processing"
-            items={data.items}
-            total={data.total}
-            shippingAddress={data.shippingAddress}
-          />
+          React.createElement(OrderEmail, {
+            customerName: data.customerName,
+            orderNumber: data.orderNumber,
+            status: 'processing' as const,
+            items: data.items,
+            total: data.total,
+            shippingAddress: data.shippingAddress,
+          })
         );
         break;
 
       case 'order-shipped':
         subject = `Order Shipped #${data.orderNumber} - Bagsberry`;
         emailHtml = render(
-          <OrderEmail
-            customerName={data.customerName}
-            orderNumber={data.orderNumber}
-            status="shipped"
-            items={data.items}
-            total={data.total}
-            shippingAddress={data.shippingAddress}
-            trackingNumber={data.trackingNumber}
-            estimatedDelivery={data.estimatedDelivery}
-          />
+          React.createElement(OrderEmail, {
+            customerName: data.customerName,
+            orderNumber: data.orderNumber,
+            status: 'shipped' as const,
+            items: data.items,
+            total: data.total,
+            shippingAddress: data.shippingAddress,
+            trackingNumber: data.trackingNumber,
+            estimatedDelivery: data.estimatedDelivery,
+          })
         );
         break;
 
       case 'order-delivered':
         subject = `Order Delivered #${data.orderNumber} - Bagsberry`;
         emailHtml = render(
-          <OrderEmail
-            customerName={data.customerName}
-            orderNumber={data.orderNumber}
-            status="delivered"
-            items={data.items}
-            total={data.total}
-            shippingAddress={data.shippingAddress}
-          />
+          React.createElement(OrderEmail, {
+            customerName: data.customerName,
+            orderNumber: data.orderNumber,
+            status: 'delivered' as const,
+            items: data.items,
+            total: data.total,
+            shippingAddress: data.shippingAddress,
+          })
         );
         break;
 

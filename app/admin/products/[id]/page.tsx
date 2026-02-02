@@ -17,6 +17,8 @@ interface Product {
   price: number;
   sale_price?: number;
   category: string;
+  category_id?: string;
+  brand_id?: string;
   stock_quantity: number;
   is_featured: boolean;
   image_url?: string;
@@ -93,6 +95,8 @@ export default function EditProductPage() {
         price: parseFloat(formData.get('price') as string),
         sale_price: formData.get('sale_price') ? parseFloat(formData.get('sale_price') as string) : null,
         category: formData.get('category') as string,
+        category_id: formData.get('category_id') as string || null,
+        brand_id: formData.get('brand_id') as string || null,
         stock_quantity: parseInt(formData.get('stock_quantity') as string),
         is_featured: formData.get('is_featured') === 'on',
         image_url: imageUrl,

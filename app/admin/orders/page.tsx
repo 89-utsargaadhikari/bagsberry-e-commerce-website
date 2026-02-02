@@ -108,7 +108,7 @@ export default function AdminOrdersPage() {
         if (orderData) {
           const shippingInfo = JSON.parse(orderData.shipping_address || '{}');
           
-          fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/send-email`, {
+          fetch('/api/send-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -334,7 +334,7 @@ export default function AdminOrdersPage() {
                               size="sm"
                               asChild
                             >
-                              <Link href={`/orders/${order.id}`}>
+                              <Link href={`/admin/orders/${order.id}`}>
                                 <Eye className="h-4 w-4" />
                               </Link>
                             </Button>

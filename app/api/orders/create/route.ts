@@ -79,30 +79,49 @@ export async function POST(request: Request) {
 
     // Send order confirmation email (non-blocking)
     const orderNumber = order.id.substring(0, 8).toUpperCase();
-    fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/send-email`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'order-placed',
-        to: shippingInfo.email,
-        data: {
-          customerName: shippingInfo.name,
-          orderNumber: orderNumber,
-          items: items.map((item: any) => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-          total: total,
-          shippingAddress: {
-            address: shippingInfo.address,
-            city: shippingInfo.city,
-            state: shippingInfo.state,
-            zip: shippingInfo.zip,
+    
+    // Use environment variable for base URL in production, construct from host in dev
+    const getBaseUrl = () => {
+      if (process.env.NEXT_PUBLIC_SITE_URL) {
+        return process.env.NEXT_PUBLIC_SITE_URL;
+      }
+      // In dev/local, construct from request host
+      const host = request.headers.get('host');
+      if (!host) {
+        console.error('❌ No host header found, cannot send email');
+        return null;
+      }
+      const protocol = host.includes('localhost') ? 'http' : 'https';
+      return `${protocol}://${host}`;
+    };
+
+    const baseUrl = getBaseUrl();
+    if (baseUrl) {
+      fetch(`${baseUrl}/api/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'order-placed',
+          to: shippingInfo.email,
+          data: {
+            customerName: shippingInfo.name,
+            orderNumber: orderNumber,
+            items: items.map((item: any) => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+            total: total,
+            shippingAddress: {
+              address: shippingInfo.address,
+              city: shippingInfo.city,
+              state: shippingInfo.state,
+              zip: shippingInfo.zip,
+            },
           },
-        },
-      }),
-    }).catch(err => console.error('❌ Failed to send order confirmation email:', err));
+        }),
+      }).catch(err => console.error('❌ Failed to send order confirmation email:', err));
+    }
 
     return NextResponse.json({
       success: true,

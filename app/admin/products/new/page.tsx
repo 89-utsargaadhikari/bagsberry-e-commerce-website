@@ -35,6 +35,8 @@ export default function NewProductPage() {
         price: parseFloat(formData.get('price') as string),
         sale_price: formData.get('sale_price') ? parseFloat(formData.get('sale_price') as string) : null,
         category: formData.get('category') as string,
+        category_id: formData.get('category_id') as string || null,
+        brand_id: formData.get('brand_id') as string || null,
         stock_quantity: parseInt(formData.get('stock_quantity') as string),
         is_featured: formData.get('is_featured') === 'on',
         image_url: imageUrl || 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=800&q=80',

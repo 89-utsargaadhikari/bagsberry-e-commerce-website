@@ -22,43 +22,85 @@ interface Product {
   price: number;
   sale_price?: number;
   category: string;
+  category_id?: string;
+  brand_id?: string;
   image_url: string;
   description: string;
   stock_quantity: number;
   is_featured: boolean;
+  categories?: { name: string; slug: string };
+  brands?: { name: string; slug: string };
+}
+
+interface Category {
+  id: string;
+  name: string;
+}
+
+interface Brand {
+  id: string;
+  name: string;
 }
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedBrand, setSelectedBrand] = useState('all');
   const [priceSort, setPriceSort] = useState('relevant');
   const { play } = useUiSounds();
   const loadedOnceRef = useRef(false);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase
+        
+        // Fetch products with category and brand names
+        const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('*');
+          .select(`
+            *,
+            categories(name, slug),
+            brands(name, slug)
+          `);
 
-        if (error) {
-          console.log('[v0] Error fetching products:', error.message);
+        if (productsError) {
+          console.log('[v0] Error fetching products:', productsError.message);
         } else {
-          setProducts(data || []);
+          setProducts(productsData || []);
         }
+
+        // Fetch categories for filter dropdown
+        const { data: categoriesData } = await supabase
+          .from('categories')
+          .select('id, name')
+          .eq('is_active', true)
+          .order('name');
+
+        if (categoriesData) setCategories(categoriesData);
+
+        // Fetch brands for filter dropdown
+        const { data: brandsData } = await supabase
+          .from('brands')
+          .select('id, name')
+          .eq('is_active', true)
+          .order('name');
+
+        if (brandsData) setBrands(brandsData);
+
       } catch (err) {
-        console.log('[v0] Exception fetching products:', err);
+        console.log('[v0] Exception fetching data:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -83,7 +125,12 @@ export default function ProductsPage() {
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter((p) => p.category === selectedCategory);
+      filtered = filtered.filter((p) => p.category_id === selectedCategory);
+    }
+
+    // Filter by brand
+    if (selectedBrand !== 'all') {
+      filtered = filtered.filter((p) => p.brand_id === selectedBrand);
     }
 
     // Sort
@@ -94,9 +141,7 @@ export default function ProductsPage() {
     }
 
     setFilteredProducts(filtered);
-  }, [products, searchTerm, selectedCategory, priceSort]);
-
-  const categories = Array.from(new Set(products.map((p) => p.category)));
+  }, [products, searchTerm, selectedCategory, selectedBrand, priceSort]);
 
   return (
     <>
@@ -137,13 +182,32 @@ export default function ProductsPage() {
                 </h3>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="w-full">
-                    <SelectValue />
+                    <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
                     {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-foreground mb-3">
+                  Brand
+                </h3>
+                <Select value={selectedBrand} onValueChange={setSelectedBrand}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Brands" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Brands</SelectItem>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id}>
+                        {brand.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -194,6 +258,7 @@ export default function ProductsPage() {
                     onClick={() => {
                       setSearchTerm('');
                       setSelectedCategory('all');
+                      setSelectedBrand('all');
                       setPriceSort('relevant');
                     }}
                     variant="outline"
@@ -252,7 +317,17 @@ export default function ProductsPage() {
                             <h3 className="font-semibold text-foreground line-clamp-2 text-xl">
                               {product.name}
                             </h3>
-                            <p className="text-sm text-foreground/60 uppercase tracking-wide">{product.category}</p>
+                            <div className="flex items-center gap-2 text-sm text-foreground/60">
+                              {product.brands?.name && (
+                                <span className="font-semibold">{product.brands.name}</span>
+                              )}
+                              {product.brands?.name && product.categories?.name && (
+                                <span>•</span>
+                              )}
+                              {product.categories?.name && (
+                                <span>{product.categories.name}</span>
+                              )}
+                            </div>
                             <div className="flex items-center gap-2">
                               {product.sale_price && product.sale_price < product.price ? (
                                 <>

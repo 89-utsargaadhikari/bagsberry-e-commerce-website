@@ -31,11 +31,6 @@ export function MusicPlayer() {
   const failedVideosRef = useRef<Set<string>>(new Set());
   const isTransitioningRef = useRef(false);
   const apiLoadedRef = useRef(false);
-  
-  // Don't render music player on admin pages
-  if (pathname?.startsWith('/admin')) {
-    return null;
-  }
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -154,6 +149,11 @@ export function MusicPlayer() {
 
   // Fetch playlist from database
   useEffect(() => {
+    // Don't load playlist on admin pages
+    if (pathname?.startsWith('/admin')) {
+      return;
+    }
+
     const fetchPlaylist = async () => {
       try {
         const supabase = createClient();
@@ -197,10 +197,15 @@ export function MusicPlayer() {
     };
 
     fetchPlaylist();
-  }, []);
+  }, [pathname]);
 
   // Initialize YouTube API and Player
   useEffect(() => {
+    // Don't initialize player on admin pages
+    if (pathname?.startsWith('/admin')) {
+      return;
+    }
+
     if (playlist.length === 0 || apiLoadedRef.current) return;
     
     apiLoadedRef.current = true;
@@ -326,6 +331,11 @@ export function MusicPlayer() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playlist.length]);
+
+  // Don't render music player on admin pages
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   // Show loading state briefly
   if (isLoading) {
