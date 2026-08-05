@@ -59,7 +59,7 @@ export default function PrivacyPage() {
                   <br />
                   Email: privacy@bagsberry.com
                   <br />
-                  Phone: +1 (555) 123-4567
+                  Phone: +977 980-1234567
                 </p>
               </div>
             </Card>

@@ -96,39 +96,39 @@ export default function Home() {
       <Header />
       <main className="min-h-screen bg-background">
         {/* Hero Section */}
-        <section className="relative overflow-hidden py-20 sm:py-32">
+        <section className="relative overflow-hidden py-10 sm:py-32">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-12 lg:grid-cols-2 lg:gap-8 items-center">
-              <div className="space-y-8">
+            <div className="grid gap-7 sm:gap-10 lg:grid-cols-2 lg:gap-8 items-center">
+              <div className="space-y-5 sm:space-y-8">
                 <div>
-                  <h1 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
+                  <h1 className="text-balance text-3xl font-bold tracking-tight text-foreground leading-tight sm:text-6xl">
                     Luxury Bags for the Modern Woman
                   </h1>
-                  <p className="mt-6 text-pretty text-lg leading-8 text-foreground/80">
+                  <p className="mt-4 text-pretty text-base leading-7 text-foreground/80 sm:mt-6 sm:text-lg sm:leading-8">
                     Discover Bagsberry's curated collection of premium, handcrafted bags and accessories. Each piece tells a story of elegance and sophistication.
                   </p>
                 </div>
-                <div className="flex gap-4">
-                  <Button asChild size="lg" className="btn-squishy bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-2xl" data-sound="pop">
-                    <Link href="/products">🛍️ Shop Collection</Link>
+                <div className="flex flex-wrap gap-3 sm:gap-4">
+                  <Button asChild size="lg" className="h-11 px-4 text-sm sm:h-12 sm:px-6 sm:text-base bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-shadow" data-sound="pop">
+                    <Link href="/products">Shop Collection</Link>
                   </Button>
-                  <Button variant="outline" size="lg" className="btn-squishy" data-sound="tap">
-                    ✨ Learn More
+                  <Button variant="outline" size="lg" className="h-11 px-4 text-sm sm:h-12 sm:px-6 sm:text-base" data-sound="tap">
+                    Learn More
                   </Button>
                 </div>
               </div>
 
               {/* Hero Image */}
-              <div className="relative aspect-square overflow-hidden rounded-3xl shadow-2xl float-idle">
+              <div className="relative aspect-square overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl">
                 <img
                   src="https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=1200&q=80"
                   alt="Luxury Bags Collection"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-primary/20 to-transparent" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-white/90 backdrop-blur-sm px-8 py-4 rounded-full rotate-idle">
-                    <span className="text-2xl">✨ Premium Collection ✨</span>
+                <div className="absolute inset-x-0 top-3 flex justify-center sm:inset-0 sm:items-center sm:justify-center">
+                  <div className="bg-white/90 backdrop-blur-sm px-4 py-1.5 sm:px-8 sm:py-4 rounded-full shadow-md">
+                    <span className="text-sm sm:text-2xl">Premium Collection</span>
                   </div>
                 </div>
               </div>
@@ -137,7 +137,7 @@ export default function Home() {
         </section>
 
         {/* Featured Products */}
-        <section className="py-16 sm:py-24">
+        <section className="relative py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="space-y-12">
               <div className="text-center space-y-4">
@@ -163,31 +163,29 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                  {products.map((product, index) => (
+                  {products.map((product) => (
                     <div
                       key={product.id}
                       data-sound-hover="tick"
-                      className="product-card group overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 hover:border-primary/30 rounded-3xl bg-card"
-                      style={{ animationDelay: `${index * 0.1}s` }}
+                      className="product-card group h-full overflow-hidden border-2 hover:border-primary/30 rounded-3xl bg-card"
                     >
                       <Link href={`/products/${product.id}`} data-sound="tap">
                         <div className="aspect-square overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 relative cursor-pointer">
                           <img
                             src={product.image_url}
                             alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.src = 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=800&q=80';
                             }}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-bold transform rotate-12 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300">
-                            ✨ NEW
+                          <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-bold">
+                            NEW
                           </div>
                         </div>
                       </Link>
-                      <div className="space-y-3 p-6 relative">
+                      <div className="space-y-3 p-6">
                         <Link href={`/products/${product.id}`} data-sound="tap">
                           <h3 className="font-semibold text-foreground line-clamp-2 text-xl group-hover:text-primary transition-colors cursor-pointer">
                             {product.name}
@@ -270,9 +268,9 @@ export default function Home() {
                   description: 'Expert care and support for all your Bagsberry purchases',
                   emoji: '💝',
                 },
-              ].map((feature, index) => (
-                <div key={feature.title} className="space-y-4 text-center product-card" style={{ animationDelay: `${index * 0.15}s` }}>
-                  <div className="text-6xl wiggle-idle" style={{ animationDelay: `${index * 0.3}s` }}>
+              ].map((feature) => (
+                <div key={feature.title} className="space-y-4 text-center">
+                  <div className="text-6xl">
                     {feature.emoji}
                   </div>
                   <h3 className="text-xl font-semibold text-foreground">{feature.title}</h3>
@@ -284,16 +282,16 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 sm:py-24">
+        <section className="relative py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="rounded-2xl bg-primary/5 px-6 py-16 text-center sm:px-12 sm:py-20 space-y-6">
-              <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
+              <h2 className="relative z-10 text-3xl font-bold text-foreground sm:text-4xl">
                 Join the Bagsberry Community
               </h2>
-              <p className="mx-auto max-w-2xl text-lg text-foreground/70">
+              <p className="relative z-10 mx-auto max-w-2xl text-lg text-foreground/70">
                 Subscribe to our newsletter for exclusive offers, early access to new collections, and style tips from our experts.
               </p>
-              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button asChild size="lg" className="relative z-10 bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Link href="/subscribe">Subscribe Now</Link>
               </Button>
             </div>
@@ -337,8 +335,9 @@ export default function Home() {
                 </ul>
               </div>
             </div>
-            <div className="mt-8 border-t pt-8 text-center text-sm text-foreground/60">
+            <div className="mt-8 border-t pt-8 text-center text-sm text-foreground/60 space-y-1">
               <p>&copy; 2025 Bagsberry. All rights reserved.</p>
+              <p>Powered by Galli Creations Nepal Pvt Ltd</p>
             </div>
           </div>
         </footer>

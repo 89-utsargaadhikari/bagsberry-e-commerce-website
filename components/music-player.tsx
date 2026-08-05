@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Music, Volume2, VolumeX, X } from 'lucide-react';
+import { PinkRibbonBow } from '@/components/pink-ribbon-bow';
 
 interface Song {
   id: string;
@@ -16,6 +17,7 @@ interface Song {
 }
 
 export function MusicPlayer() {
+  const EXPERIENCE_UNLOCK_KEY = 'bagsberry_experience_unlocked';
   const pathname = usePathname();
   const [playlist, setPlaylist] = useState<Song[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -24,6 +26,8 @@ export function MusicPlayer() {
   const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [playerReady, setPlayerReady] = useState(false);
+  const [experienceUnlocked, setExperienceUnlocked] = useState(false);
+  const [unlockChecked, setUnlockChecked] = useState(false);
   
   const playerRef = useRef<any>(null);
   const playlistRef = useRef<Song[]>([]);
@@ -31,6 +35,23 @@ export function MusicPlayer() {
   const failedVideosRef = useRef<Set<string>>(new Set());
   const isTransitioningRef = useRef(false);
   const apiLoadedRef = useRef(false);
+
+  // Check one-time unlock state (persisted for current tab session)
+  useEffect(() => {
+    if (pathname?.startsWith('/admin')) {
+      setUnlockChecked(true);
+      return;
+    }
+
+    try {
+      const unlocked = window.sessionStorage.getItem(EXPERIENCE_UNLOCK_KEY) === 'true';
+      setExperienceUnlocked(unlocked);
+    } catch {
+      setExperienceUnlocked(false);
+    } finally {
+      setUnlockChecked(true);
+    }
+  }, [pathname]);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -206,6 +227,11 @@ export function MusicPlayer() {
       return;
     }
 
+    // Start player only after the one-time unlock action
+    if (!experienceUnlocked) {
+      return;
+    }
+
     if (playlist.length === 0 || apiLoadedRef.current) return;
     
     apiLoadedRef.current = true;
@@ -330,11 +356,59 @@ export function MusicPlayer() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playlist.length]);
+  }, [playlist.length, experienceUnlocked, pathname]);
 
   // Don't render music player on admin pages
   if (pathname?.startsWith('/admin')) {
     return null;
+  }
+
+  if (!unlockChecked) {
+    return null;
+  }
+
+  const handleUnlockExperience = () => {
+    try {
+      window.sessionStorage.setItem(EXPERIENCE_UNLOCK_KEY, 'true');
+    } catch {
+      // Local storage failed silently
+    }
+
+    setExperienceUnlocked(true);
+  };
+
+  // One-time gate: shown only until user unlocks
+  if (unlockChecked && !experienceUnlocked) {
+    return (
+      <div className="fixed inset-0 z-[80] flex items-center justify-center bg-gradient-to-br from-pink-100/85 via-pink-100/80 to-pink-200/85 backdrop-blur-sm px-4">
+        <div className="relative w-full max-w-xl overflow-hidden rounded-3xl border-2 border-pink-300 bg-gradient-to-br from-pink-50 via-pink-100 to-pink-200 p-8 text-center shadow-2xl animate-[slide-up-bounce_0.7s_cubic-bezier(0.34,1.56,0.64,1)]">
+          <div className="pointer-events-none absolute -top-8 -left-8 h-24 w-24 rounded-full bg-pink-300/40 blur-xl pulse-idle" />
+          <div className="pointer-events-none absolute -bottom-10 -right-6 h-28 w-28 rounded-full bg-pink-300/40 blur-xl float-idle" />
+          <PinkRibbonBow className="pointer-events-none absolute top-4 right-6 h-10 w-10 ribbon-bow-float" />
+          <PinkRibbonBow className="pointer-events-none absolute bottom-4 left-7 h-9 w-9 ribbon-bow-float" style={{ animationDelay: '0.6s' }} />
+          <PinkRibbonBow className="pointer-events-none absolute top-14 left-6 h-8 w-8 ribbon-bow-float" style={{ animationDelay: '0.95s' }} />
+          <PinkRibbonBow className="pointer-events-none absolute bottom-10 right-16 h-7 w-7 ribbon-bow-float" style={{ animationDelay: '1.2s' }} />
+
+          <div className="mb-2 text-3xl wiggle-idle">✨</div>
+          <p
+            className="text-5xl leading-tight text-primary"
+            style={{ fontFamily: "var(--font-greatvibes), 'Great Vibes', cursive" }}
+          >
+            Unlock the Bagsberry experience
+          </p>
+          <p className="mt-2 text-sm text-foreground/70">Tap once to begin.</p>
+
+          <button
+            type="button"
+            onClick={handleUnlockExperience}
+            className="btn-squishy mt-7 inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-10 py-3.5 text-lg font-semibold text-primary-foreground shadow-lg hover:bg-primary/90"
+          >
+            <span className="wiggle-idle">🔓</span>
+            Unlock
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // Show loading state briefly
@@ -402,7 +476,7 @@ export function MusicPlayer() {
               🎵 {currentSong.title}
             </p>
             <p className="text-xs text-pink-400">{currentSong.artist}</p>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-pink-400 mt-0.5">
               Song {currentIndex + 1} of {playlist.length}
             </p>
           </div>

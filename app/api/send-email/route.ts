@@ -5,8 +5,6 @@ import React from 'react';
 import { OrderConfirmation } from '@/emails/order-confirmation';
 import { OrderEmail } from '@/emails/order-email';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -20,6 +18,7 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     let subject = '';
     let emailHtml = '';
@@ -28,7 +27,7 @@ export async function POST(request: Request) {
     switch (type) {
       case 'order-placed':
         subject = `Order Placed #${data.orderNumber} - Bagsberry`;
-        emailHtml = render(
+        emailHtml = await render(
           React.createElement(OrderConfirmation, {
             customerName: data.customerName,
             orderNumber: data.orderNumber,
@@ -41,7 +40,7 @@ export async function POST(request: Request) {
 
       case 'order-confirmed':
         subject = `Order Confirmed #${data.orderNumber} - Bagsberry`;
-        emailHtml = render(
+        emailHtml = await render(
           React.createElement(OrderEmail, {
             customerName: data.customerName,
             orderNumber: data.orderNumber,
@@ -55,7 +54,7 @@ export async function POST(request: Request) {
 
       case 'order-processing':
         subject = `Order Processing #${data.orderNumber} - Bagsberry`;
-        emailHtml = render(
+        emailHtml = await render(
           React.createElement(OrderEmail, {
             customerName: data.customerName,
             orderNumber: data.orderNumber,
@@ -69,7 +68,7 @@ export async function POST(request: Request) {
 
       case 'order-shipped':
         subject = `Order Shipped #${data.orderNumber} - Bagsberry`;
-        emailHtml = render(
+        emailHtml = await render(
           React.createElement(OrderEmail, {
             customerName: data.customerName,
             orderNumber: data.orderNumber,
@@ -85,7 +84,7 @@ export async function POST(request: Request) {
 
       case 'order-delivered':
         subject = `Order Delivered #${data.orderNumber} - Bagsberry`;
-        emailHtml = render(
+        emailHtml = await render(
           React.createElement(OrderEmail, {
             customerName: data.customerName,
             orderNumber: data.orderNumber,

@@ -86,7 +86,7 @@ export const OrderEmail = ({
 
           {/* Order Info */}
           <Section style={orderInfoBox}>
-            <Text style={orderNumber}>Order #{orderNumber}</Text>
+            <Text style={orderNumberText}>Order #{orderNumber}</Text>
             {trackingNumber && (
               <Text style={trackingText}>
                 <strong>Tracking Number:</strong> {trackingNumber}
@@ -206,7 +206,7 @@ const orderInfoBox = {
   marginBottom: '24px',
 };
 
-const orderNumber = {
+const orderNumberText = {
   fontSize: '20px',
   fontWeight: 'bold',
   color: '#ec4899',

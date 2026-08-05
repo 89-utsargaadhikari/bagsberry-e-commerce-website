@@ -276,7 +276,7 @@ export default function ProductsPage() {
                       <Link key={product.id} href={`/products/${product.id}`} data-sound="tap">
                         <Card
                           data-sound-hover="tick"
-                          className="group overflow-hidden hover:shadow-2xl transition-all duration-300 h-full cursor-pointer hover:-translate-y-2 border-2 hover:border-primary/30 relative"
+                          className="product-card group overflow-hidden h-full cursor-pointer border-2 hover:border-primary/30 relative"
                         >
                           {/* Badges */}
                           <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
@@ -286,7 +286,7 @@ export default function ProductsPage() {
                               </span>
                             )}
                             {product.sale_price && product.sale_price < product.price && (
-                              <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                              <span className="bg-pink-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
                                 🏷️ On Sale
                               </span>
                             )}
@@ -296,7 +296,7 @@ export default function ProductsPage() {
                               </span>
                             )}
                             {product.stock_quantity > 0 && product.stock_quantity < 5 && (
-                              <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                              <span className="bg-pink-400 text-white text-xs px-2 py-1 rounded-full font-semibold">
                                 Low Stock
                               </span>
                             )}
@@ -306,7 +306,7 @@ export default function ProductsPage() {
                             <img
                               src={product.image_url}
                               alt={product.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src = 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=800&q=80';
