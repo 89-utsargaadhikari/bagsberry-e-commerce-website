@@ -91,7 +91,7 @@ export default function ContactPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-foreground">Phone</h3>
-                        <p className="text-foreground/70">+1 (555) 123-4567</p>
+                        <p className="text-foreground/70">+977 980-1234567</p>
                       </div>
                     </div>
                     <div className="flex gap-4">
@@ -101,8 +101,7 @@ export default function ContactPage() {
                       <div>
                         <h3 className="font-semibold text-foreground">Address</h3>
                         <p className="text-foreground/70">
-                          123 Fashion Avenue<br />
-                          New York, NY 10001
+                          Boudha, Kathmandu, Nepal
                         </p>
                       </div>
                     </div>

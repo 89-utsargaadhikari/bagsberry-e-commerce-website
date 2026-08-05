@@ -186,7 +186,7 @@ export default function AdminProductsPage() {
                         <td className="px-6 py-4">
                           <div className="flex flex-col gap-1.5">
                             {product.brands?.name && (
-                              <span className="inline-block rounded-full bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-600">
+                              <span className="inline-block rounded-full bg-pink-500/10 px-2.5 py-1 text-xs font-medium text-pink-700">
                                 🏷️ {product.brands.name}
                               </span>
                             )}
@@ -196,7 +196,7 @@ export default function AdminProductsPage() {
                               </span>
                             )}
                             {!product.brands?.name && !product.categories?.name && product.category && (
-                              <span className="inline-block rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+                              <span className="inline-block rounded-full bg-pink-100 px-2.5 py-1 text-xs font-medium text-pink-700">
                                 {product.category}
                               </span>
                             )}
@@ -221,8 +221,8 @@ export default function AdminProductsPage() {
                           <div className="flex items-center gap-2">
                             <span className={`font-semibold ${
                               product.stock_quantity === 0 ? 'text-destructive' :
-                              product.stock_quantity < 5 ? 'text-orange-500' :
-                              'text-green-600'
+                              product.stock_quantity < 5 ? 'text-pink-500' :
+                              'text-pink-700'
                             }`}>
                               {product.stock_quantity}
                             </span>
@@ -232,7 +232,7 @@ export default function AdminProductsPage() {
                               </span>
                             )}
                             {product.stock_quantity > 0 && product.stock_quantity < 5 && (
-                              <span className="text-xs bg-orange-500/10 text-orange-600 px-2 py-0.5 rounded">
+                              <span className="text-xs bg-pink-500/10 text-pink-700 px-2 py-0.5 rounded">
                                 Low
                               </span>
                             )}
@@ -246,7 +246,7 @@ export default function AdminProductsPage() {
                               </span>
                             )}
                             {product.sale_price && product.sale_price < product.price && (
-                              <span className="inline-flex items-center gap-1 text-xs bg-green-500/10 text-green-600 px-2 py-0.5 rounded">
+                              <span className="inline-flex items-center gap-1 text-xs bg-pink-500/10 text-pink-700 px-2 py-0.5 rounded">
                                 🏷️ On Sale
                               </span>
                             )}

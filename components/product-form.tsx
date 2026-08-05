@@ -481,7 +481,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
           onChange={(e) =>
             setFormData({ ...formData, is_featured: e.target.checked })
           }
-          className="h-4 w-4 rounded border-gray-300"
+          className="h-4 w-4 rounded border-pink-300"
         />
         <Label htmlFor="is_featured" className="cursor-pointer">
           Feature this product on homepage

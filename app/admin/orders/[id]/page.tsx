@@ -183,9 +183,9 @@ export default function AdminOrderDetailPage() {
                 </h2>
                 
                 {isCancelled ? (
-                  <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 text-center">
-                    <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-                    <p className="text-red-700 font-medium">
+                  <div className="bg-pink-50 border-2 border-pink-200 rounded-xl p-6 text-center">
+                    <XCircle className="h-16 w-16 text-pink-500 mx-auto mb-4" />
+                    <p className="text-pink-700 font-medium">
                       This order has been cancelled
                     </p>
                   </div>

@@ -60,7 +60,7 @@ export const OrderConfirmation = ({
 
           {/* Order Info */}
           <Section style={orderInfoBox}>
-            <Text style={orderNumber}>Order #{orderNumber}</Text>
+            <Text style={orderNumberText}>Order #{orderNumber}</Text>
             <Text style={orderDate}>
               Order Date: {new Date().toLocaleDateString('en-NP', {
                 year: 'numeric',
@@ -186,7 +186,7 @@ const orderInfoBox = {
   marginBottom: '24px',
 };
 
-const orderNumber = {
+const orderNumberText = {
   fontSize: '20px',
   fontWeight: 'bold',
   color: '#ec4899',

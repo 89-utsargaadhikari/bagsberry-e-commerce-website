@@ -114,7 +114,7 @@ export default function LoginPage() {
             <div
               className={`mb-6 p-4 rounded-lg ${
                 error.includes('email')
-                  ? 'bg-green-100 text-green-800 border border-green-300'
+                  ? 'bg-pink-100 text-pink-800 border border-pink-300'
                   : 'bg-destructive/10 text-destructive border border-destructive'
               }`}
             >

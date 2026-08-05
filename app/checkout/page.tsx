@@ -10,7 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 import { CheckCircle } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
+import { createClient } from '@/lib/supabase/client';
 import dynamic from 'next/dynamic';
+import type { AddressInfo } from '@/components/location-picker';
 
 // Dynamic import for map to avoid SSR issues
 const LocationPicker = dynamic(
@@ -24,6 +26,7 @@ export default function CheckoutPage() {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
   const [loading, setLoading] = useState(false);
+  const [userLoading, setUserLoading] = useState(true);
   const [shippingInfo, setShippingInfo] = useState({
     firstName: '',
     lastName: '',
@@ -35,6 +38,55 @@ export default function CheckoutPage() {
     postalCode: '',
   });
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [addressFromMap, setAddressFromMap] = useState(false);
+
+  // Fetch user data if logged in
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Email is always available
+        const email = user.email || '';
+        
+        // Try multiple metadata fields for name (different providers use different fields)
+        const fullName = user.user_metadata?.full_name || 
+                         user.user_metadata?.name || 
+                         user.user_metadata?.display_name ||
+                         user.user_metadata?.username || 
+                         '';
+        
+        // Also check for separate first/last name fields
+        const metaFirstName = user.user_metadata?.first_name || user.user_metadata?.given_name || '';
+        const metaLastName = user.user_metadata?.last_name || user.user_metadata?.family_name || '';
+        
+        let firstName = '';
+        let lastName = '';
+        
+        if (metaFirstName || metaLastName) {
+          // If we have separate first/last name fields, use them
+          firstName = metaFirstName;
+          lastName = metaLastName;
+        } else if (fullName) {
+          // Otherwise split the full name
+          const nameParts = fullName.trim().split(' ');
+          firstName = nameParts[0] || '';
+          lastName = nameParts.slice(1).join(' ') || '';
+        }
+        
+        setShippingInfo(prev => ({
+          ...prev,
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+        }));
+      }
+      setUserLoading(false);
+    };
+
+    fetchUserData();
+  }, []);
 
   useEffect(() => {
     // Redirect if cart is empty
@@ -201,22 +253,42 @@ export default function CheckoutPage() {
                       Phone Number
                     </label>
                     <Input 
-                      placeholder="+977-98XXXXXXXX" 
+                      placeholder="Enter your phone number (e.g., 9812345678)" 
                       className="btn-squishy"
                       value={shippingInfo.phone}
                       onChange={(e) => setShippingInfo({...shippingInfo, phone: e.target.value})}
                       required
                     />
                   </div>
+
+                  {/* Location Picker */}
+                  <div className="pt-4 border-t">
+                    <LocationPicker
+                      onLocationSelect={(lat, lng, address) => {
+                        setLocation({ lat, lng });
+                        setShippingInfo({
+                          ...shippingInfo,
+                          address: address.address,
+                          city: address.city,
+                          province: address.province,
+                          postalCode: address.postalCode,
+                        });
+                        setAddressFromMap(true);
+                      }}
+                      initialLat={27.7172}
+                      initialLng={85.3240}
+                    />
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Delivery Address
+                      Delivery Address {addressFromMap && <span className="text-xs text-primary">(Auto-filled from map)</span>}
                     </label>
                     <Textarea 
-                      placeholder="Thamel, Kathmandu" 
-                      className="btn-squishy"
+                      placeholder="Select location on map above" 
+                      className="btn-squishy bg-muted"
                       value={shippingInfo.address}
-                      onChange={(e) => setShippingInfo({...shippingInfo, address: e.target.value})}
+                      readOnly
                       required
                     />
                   </div>
@@ -227,9 +299,9 @@ export default function CheckoutPage() {
                       </label>
                       <Input 
                         placeholder="Kathmandu" 
-                        className="btn-squishy"
+                        className="btn-squishy bg-muted"
                         value={shippingInfo.city}
-                        onChange={(e) => setShippingInfo({...shippingInfo, city: e.target.value})}
+                        readOnly
                         required
                       />
                     </div>
@@ -239,9 +311,9 @@ export default function CheckoutPage() {
                       </label>
                       <Input 
                         placeholder="Bagmati Province" 
-                        className="btn-squishy"
+                        className="btn-squishy bg-muted"
                         value={shippingInfo.province}
-                        onChange={(e) => setShippingInfo({...shippingInfo, province: e.target.value})}
+                        readOnly
                         required
                       />
                     </div>
@@ -251,25 +323,14 @@ export default function CheckoutPage() {
                       </label>
                       <Input 
                         placeholder="44600" 
-                        className="btn-squishy"
+                        className="btn-squishy bg-muted"
                         value={shippingInfo.postalCode}
-                        onChange={(e) => setShippingInfo({...shippingInfo, postalCode: e.target.value})}
+                        readOnly
                         pattern="[0-9]{5}"
                         title="Please enter a 5-digit postal code"
                         required
                       />
                     </div>
-                  </div>
-
-                  {/* Location Picker */}
-                  <div className="pt-4 border-t">
-                    <LocationPicker
-                      onLocationSelect={(lat, lng) => {
-                        setLocation({ lat, lng });
-                      }}
-                      initialLat={27.7172}
-                      initialLng={85.3240}
-                    />
                   </div>
 
                   <div className="bg-primary/5 border-2 border-primary/20 rounded-2xl p-6 text-center">
@@ -289,7 +350,7 @@ export default function CheckoutPage() {
                     data-sound="whoop"
                     disabled={loading}
                   >
-                    {loading ? 'Processing...' : '🎉 Place Order'}
+                    {loading ? 'Processing...' : 'Place Order'}
                   </Button>
                 </form>
               </Card>

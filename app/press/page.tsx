@@ -35,7 +35,7 @@ export default function PressPage() {
                   <h3 className="text-xl font-semibold text-foreground mb-2">Contact Information</h3>
                   <div className="space-y-2 text-foreground/70">
                     <p>📧 Email: press@bagsberry.com</p>
-                    <p>📱 Phone: +1 (555) 123-4567</p>
+                    <p>📱 Phone: +977 980-1234567</p>
                   </div>
                 </div>
               </div>

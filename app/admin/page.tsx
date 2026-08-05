@@ -169,15 +169,15 @@ export default function AdminDashboard() {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-foreground/70">Status</span>
-                  <span className="font-medium text-green-600">Operational</span>
+                  <span className="font-medium text-pink-700">Operational</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-foreground/70">API Health</span>
-                  <span className="font-medium text-green-600">Healthy</span>
+                  <span className="font-medium text-pink-700">Healthy</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-foreground/70">Database</span>
-                  <span className="font-medium text-green-600">Connected</span>
+                  <span className="font-medium text-pink-700">Connected</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-foreground/70">Last Update</span>

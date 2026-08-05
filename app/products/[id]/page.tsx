@@ -243,7 +243,7 @@ export default function ProductDetailPage() {
                       <p className="text-2xl text-foreground/50 line-through">
                         NPR {product.price.toFixed(2)}
                       </p>
-                      <span className="bg-green-500 text-white text-sm px-3 py-1 rounded-full font-semibold">
+                      <span className="bg-pink-500 text-white text-sm px-3 py-1 rounded-full font-semibold">
                         Save {Math.round(((product.price - product.sale_price) / product.price) * 100)}%
                       </span>
                     </>
@@ -258,7 +258,7 @@ export default function ProductDetailPage() {
                     Premium quality, handcrafted with excellence
                   </p>
                   {product.stock_quantity > 0 && product.stock_quantity < 10 && (
-                    <span className="text-orange-600 text-sm font-semibold">
+                    <span className="text-pink-600 text-sm font-semibold">
                       • Only {product.stock_quantity} left!
                     </span>
                   )}

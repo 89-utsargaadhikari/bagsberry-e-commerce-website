@@ -55,17 +55,16 @@ export default function WishlistPage() {
             </div>
           ) : (
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {mockWishlistItems.map((item, index) => (
+              {mockWishlistItems.map((item) => (
                 <div
                   key={item.id}
                   className="product-card group overflow-hidden cursor-pointer border-2 hover:border-primary/30 rounded-3xl bg-card"
-                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="aspect-square overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 relative">
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <button
                       data-sound="pop"
